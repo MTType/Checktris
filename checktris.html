@@ -1,0 +1,151 @@
+<html>
+<head>
+    <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.4.4/jquery.js"></script>
+</head>
+<body>
+	
+	<script type="text/javascript">
+		$(function() {
+			var MyGame = new Game();
+			MyGame.Field(20, 20);
+			
+			MyGame.Start();
+		});
+
+		function Game() {
+			var _height, _width;
+			var _id = new Date().getTime();
+			
+			var _last_tick_time = new Date().getTime();
+			var _tick_rate = 500;
+			var _block_position_row, _block_position_col;
+			this.block;
+			
+			this.Field = function(width,height) {
+				_height = height;
+				_width = width;
+				_block_position_row = height-5;
+				_block_position_col = Math.floor(width/2);
+
+				//Use existing game field if poss, otherwise create a new one
+				if ($('#' + _id).length === 1)
+					$('#' + _id).html('');
+				else
+					$('body').append('<div id="' + _id + '"></div>');
+
+				for (var h = height - 1; h >= 0; h--) {
+					for (var w = 0; w < width; w++) {
+						$('#' + _id).append(
+							'<input type="checkbox" style="margin: -1px" disabled="disabled" name="' + h + 'x' + w + '" />'
+						);
+					}
+					$('#' + _id).append('<br>');
+				}
+
+			}
+
+			this.Start = function() {
+				SetStatus('Game in progress...');
+				block = GetNextBlock();
+				setInterval(function() {Tick(block)}, _tick_rate);
+			}
+			
+			function Tick(block){
+				ToggleBlock(false);
+				_block_position_row --;
+				TransposeBlock(true);
+				ToggleBlock(true);
+			}
+
+			//Toggles shape starting from coordinates (_block_position_row, _block_position_col)
+			function ToggleBlock(toggle){
+				var new_row, new_col;
+				for(var i=0; i<block.length; i++){
+					for(var j=0; j<block[i].length; j++){
+						if(block[i][j] == 1){
+							new_row = _block_position_row+i;
+							new_col = _block_position_col+j;
+							document.getElementsByName(""+new_row+"x"+new_col)[0].checked = toggle;
+						}
+					}
+				}
+			}
+
+			function SetStatus(sts) {
+				if ($('#' + _id).find('#status').length === 0)
+					$('#' + _id).prepend('<div id="status"></div>');
+				
+				$('#' + _id).find('#status').html('Status:<br>' + sts)
+			}
+
+			function GetNextBlock() {		
+				var rand=Math.floor(Math.random()*7)
+				switch(rand){
+					case 0:
+						return [
+							[1, 1],
+							[1, 1]
+						];
+					case 1:
+						return [
+							[1, 0],
+							[1, 0],
+							[1, 1]
+						];
+					case 2:
+						return [
+							[0, 1],
+							[0, 1],
+							[1, 1]
+						];
+					case 3:
+						return [
+							[1, 1, 1, 1]
+						];
+					case 4:
+						return [
+							[0, 1, 0],
+							[1, 1, 1]
+						];
+					case 5:
+						return [
+							[1, 1, 0],
+							[0, 1, 1]
+						];
+					case 6:
+						return [
+							[0, 1, 1],
+							[1, 1, 0]
+						];
+				}
+			}
+
+			//transposes the 2d array in direction dir in {true, false} = {clockwise, anti-clockwise}
+			//We dont want to transpose it, we want to turn it! Duh!
+			function TransposeBlock(dir){
+				var newBlock = new Array();
+				for(var i=0; i<block[0].length; i++){
+					newBlock[i] = new Array();
+					for(var j=0; j<block.length; j++){
+						switch(dir){
+							case true:
+								var x = block.length - j - 1;
+								newBlock[i][x] = block[j][i];
+								break;
+							case false:
+								newBlock[i][j] = block[j][i];
+								break;
+						}
+					}
+				}
+				block = new Array();
+				block = newBlock;
+			}
+		}
+
+		function Block() {
+			this.Type;
+		}
+	</script>
+</body>
+</html>
