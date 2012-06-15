@@ -17,7 +17,7 @@
 			var _id = new Date().getTime();
 			
 			var _last_tick_time = new Date().getTime();
-			var _tick_rate = 500;
+			var _tick_rate = 1000;
 			var _block_position_row, _block_position_col;
 			this.block;
 			
@@ -53,7 +53,7 @@
 			function Tick(block){
 				ToggleBlock(false);
 				_block_position_row --;
-				TransposeBlock(true);
+				RotateBlock(true);
 				ToggleBlock(true);
 			}
 
@@ -120,20 +120,23 @@
 				}
 			}
 
-			//transposes the 2d array in direction dir in {true, false} = {clockwise, anti-clockwise}
-			//We dont want to transpose it, we want to turn it! Duh!
-			function TransposeBlock(dir){
+			//rotates the block in direction dir in {true, false} = {clockwise, anti-clockwise}
+			function RotateBlock(dir){
 				var newBlock = new Array();
 				for(var i=0; i<block[0].length; i++){
 					newBlock[i] = new Array();
+				}
+
+				for(var i=0; i<block[0].length; i++){
 					for(var j=0; j<block.length; j++){
 						switch(dir){
 							case true:
-								var x = block.length - j - 1;
-								newBlock[i][x] = block[j][i];
+								var y = block[0].length - i - 1;
+								newBlock[y][j] = block[j][i];
 								break;
 							case false:
-								newBlock[i][j] = block[j][i];
+								var x = block.length - j - 1;
+								newBlock[i][x] = block[j][i];
 								break;
 						}
 					}
