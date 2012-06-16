@@ -18,13 +18,19 @@
 			
 			var _last_tick_time = new Date().getTime();
 			var _tick_rate = 1000;
+			//block row and column is the bottom left coordinate for the block.
 			var _block_position_row, _block_position_col;
+			//offset to position blocks in their centre, which is different for each block and set at GetNextBlock
+			//TODO implement offset initial values and offset calculations
+			var _block_centre_row, _block_centre_col;
+			//array containing how many cells are checked, for each row
+			var _lines_complete
 			this.block;
 			
 			this.Field = function(width,height) {
 				_height = height;
 				_width = width;
-				_block_position_row = height-5;
+				_block_position_row = height-4;
 				_block_position_col = Math.floor(width/2);
 
 				//Use existing game field if poss, otherwise create a new one
@@ -41,7 +47,6 @@
 					}
 					$('#' + _id).append('<br>');
 				}
-
 			}
 
 			this.Start = function() {
@@ -50,10 +55,26 @@
 				setInterval(function() {Tick(block)}, _tick_rate);
 			}
 			
+			//User attempts to move block in direction dir in {left, down, right} = {-1, 0 ,1}
+			//TODO collision
+			function MoveBlock(dir){
+				ToggleBlock(false);
+				switch(dir){
+					case(-1):
+						_block_position_col--;
+						break;
+					case(0):
+						_block_position_row--;
+						break;
+					case(1):
+						_block_position_col++;
+						break;
+				}
+			}
+			
 			function Tick(block){
 				ToggleBlock(false);
 				_block_position_row --;
-				RotateBlock(true);
 				ToggleBlock(true);
 			}
 
@@ -74,7 +95,6 @@
 			function SetStatus(sts) {
 				if ($('#' + _id).find('#status').length === 0)
 					$('#' + _id).prepend('<div id="status"></div>');
-				
 				$('#' + _id).find('#status').html('Status:<br>' + sts)
 			}
 
@@ -152,3 +172,4 @@
 	</script>
 </body>
 </html>
+
