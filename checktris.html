@@ -20,8 +20,7 @@
 			var _tick_rate = 1000;
 			//block row and column is the bottom left coordinate for the block.
 			var _block_position_row, _block_position_col;
-			//offset to position blocks in their centre, which is different for each block and set at GetNextBlock
-			//TODO implement offset initial values and offset calculations
+			//offset to position blocks in their centre, which is different for each block and set at GetNextBlock, taken from the top right hand corner of the block
 			var _block_centre_row, _block_centre_col;
 			//array containing how many cells are checked, for each row
 			var _lines_complete
@@ -30,8 +29,6 @@
 			this.Field = function(width,height) {
 				_height = height;
 				_width = width;
-				_block_position_row = height-4;
-				_block_position_col = Math.floor(width/2);
 
 				//Use existing game field if poss, otherwise create a new one
 				if ($('#' + _id).length === 1)
@@ -51,12 +48,23 @@
 
 			this.Start = function() {
 				SetStatus('Game in progress...');
+				_block_position_row = _height-4;
+				_block_position_col = Math.floor(_width/2);
+				_block_centre_row = 0, _block_centre_col = 0;
 				block = GetNextBlock();
+				SetStatus(_block_centre_row+", "+_block_centre_col);
 				setInterval(function() {Tick(block)}, _tick_rate);
 			}
 			
+			function Tick(block){
+				ToggleBlock(false);
+				RotateBlock(true);
+				_block_position_row--;
+				ToggleBlock(true);
+			}
+			
 			//User attempts to move block in direction dir in {left, down, right} = {-1, 0 ,1}
-			//TODO collision
+			//TODO collision and user input
 			function MoveBlock(dir){
 				ToggleBlock(false);
 				switch(dir){
@@ -72,10 +80,16 @@
 				}
 			}
 			
-			function Tick(block){
-				ToggleBlock(false);
-				_block_position_row --;
-				ToggleBlock(true);
+			//collision detection in direction dir in {left, down, right} = {-1, 0, 1}
+			function CheckCollide(dir){
+				switch(dir){
+					case(-1):
+						break;
+					case(0):
+						break;
+					case(1):
+						break;
+				}
 			}
 
 			//Toggles shape starting from coordinates (_block_position_row, _block_position_col)
@@ -91,6 +105,8 @@
 					}
 				}
 			}
+			
+			
 
 			function SetStatus(sts) {
 				if ($('#' + _id).find('#status').length === 0)
@@ -107,32 +123,42 @@
 							[1, 1]
 						];
 					case 1:
+						_block_centre_row++;
 						return [
 							[1, 0],
 							[1, 0],
 							[1, 1]
 						];
 					case 2:
+						_block_centre_row++;
+						_block_centre_col++;
 						return [
 							[0, 1],
 							[0, 1],
 							[1, 1]
 						];
 					case 3:
+						_block_centre_col++;
 						return [
 							[1, 1, 1, 1]
 						];
 					case 4:
+						_block_centre_row++;
+						_block_centre_col++;
 						return [
 							[0, 1, 0],
 							[1, 1, 1]
 						];
 					case 5:
+						_block_centre_row++;
+						_block_centre_col++;
 						return [
 							[1, 1, 0],
 							[0, 1, 1]
 						];
 					case 6:
+						_block_centre_row++;
+						_block_centre_col++;
 						return [
 							[0, 1, 1],
 							[1, 1, 0]
@@ -147,16 +173,26 @@
 					newBlock[i] = new Array();
 				}
 
+				//i = block column, j = block row
 				for(var i=0; i<block[0].length; i++){
 					for(var j=0; j<block.length; j++){
 						switch(dir){
 							case true:
 								var y = block[0].length - i - 1;
 								newBlock[y][j] = block[j][i];
+								if(j == _block_centre_row && i == _block_centre_col){
+									//_block_position_row += y - j;
+									//_block_position_col += i - j;
+									//need to change centre coordinates
+								}
 								break;
 							case false:
 								var x = block.length - j - 1;
 								newBlock[i][x] = block[j][i];
+								if(j == _block_centre_row && i == _block_centre_col){
+									//_block_position_row += i - j;
+									//_block_position_col += x - i;
+								}
 								break;
 						}
 					}
@@ -172,4 +208,3 @@
 	</script>
 </body>
 </html>
-
