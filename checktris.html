@@ -17,13 +17,16 @@
 			var _id = new Date().getTime();
 			
 			var _last_tick_time = new Date().getTime();
-			var _tick_rate = 1000;
+			var _tick_rate = 50;
 			//block row and column is the bottom left coordinate for the block.
 			var _block_position_row, _block_position_col;
 			//offset to position blocks in their centre, which is different for each block and set at GetNextBlock, taken from the top right hand corner of the block
 			var _block_centre_row, _block_centre_col;
 			//array containing how many cells are checked, for each row
 			var _lines_complete
+			// bool that controls when a new block is created. false when the block has landed in position and a new block is required.
+			var _game_ended = false;
+			this.tickInterval;
 			this.block;
 			
 			this.Field = function(width,height) {
@@ -48,35 +51,45 @@
 
 			this.Start = function() {
 				SetStatus('Game in progress...');
-				_block_position_row = _height-4;
+				block = GetNextBlock();
+				_block_position_row = _height-2;
 				_block_position_col = Math.floor(_width/2);
 				_block_centre_row = 0, _block_centre_col = 0;
-				block = GetNextBlock();
-				SetStatus(_block_centre_row+", "+_block_centre_col);
-				setInterval(function() {Tick(block)}, _tick_rate);
+				tickInterval = setInterval(function() {Tick(block)}, _tick_rate);
 			}
 			
 			function Tick(block){
-				ToggleBlock(false);
-				RotateBlock(true);
-				_block_position_row--;
-				ToggleBlock(true);
+				MoveBlock(0);
+			}
+			
+			function ResetBlockPosition(){
+				block = GetNextBlock();
+				_block_position_row = _height-2;
+				_block_position_col = Math.floor(_width/2);
+				_block_centre_row = 0, _block_centre_col = 0;
 			}
 			
 			//User attempts to move block in direction dir in {left, down, right} = {-1, 0 ,1}
-			//TODO collision and user input
+			//TODO user input
 			function MoveBlock(dir){
-				ToggleBlock(false);
-				switch(dir){
-					case(-1):
-						_block_position_col--;
-						break;
-					case(0):
-						_block_position_row--;
-						break;
-					case(1):
-						_block_position_col++;
-						break;
+				if(CheckCollide(dir)){
+					if(dir == 0){
+						ResetBlockPosition();
+					}
+				}else{
+					ToggleBlock(false);
+					switch(dir){
+						case(-1):
+							_block_position_col--;
+							break;
+						case(0):
+							_block_position_row--;
+							break;
+						case(1):
+							_block_position_col++;
+							break;
+					}
+					ToggleBlock(true);
 				}
 			}
 			
@@ -84,11 +97,41 @@
 			function CheckCollide(dir){
 				switch(dir){
 					case(-1):
-						break;
+						if(_block_position_col == 0){
+							return true;
+						}
+						var collide_col = _block_position_col - 1;
+						for(var i=0; i<block.length; i++){
+							var current_row = _block_position_row+i;
+							if(document.getElementsByName(""+current_row+"x"+_block_position_col)[0].checked == true  && document.getElementsByName(""+current_row+"x"+collide_col)[0].checked == true){
+								return true;
+							}
+						}
+						return false;
 					case(0):
-						break;
+						if(_block_position_row == 0){
+							return true;
+						}
+						var collide_row = _block_position_row - 1;
+						for(var i=0; i<block[0].length; i++){
+							var current_col = _block_position_col+i;
+							if(document.getElementsByName(""+_block_position_row+"x"+current_col)[0].checked == true  && document.getElementsByName(""+collide_row+"x"+current_col)[0].checked == true){
+								return true;
+							}
+						}
+						return false;
 					case(1):
-						break;
+						if(_block_position_col == _width){
+							return true;
+						}
+						var collide_col = _block_position_col + 1;
+						for(var i=0; i<block.length; i++){
+							var current_row = _block_position_row+i;
+							if(document.getElementsByName(""+current_row+"x"+_block_position_col)[0].checked == true  && document.getElementsByName(""+current_row+"x"+collide_col)[0].checked == true){
+								return true;
+							}
+						}
+						return false;
 				}
 			}
 
@@ -181,8 +224,10 @@
 								var y = block[0].length - i - 1;
 								newBlock[y][j] = block[j][i];
 								if(j == _block_centre_row && i == _block_centre_col){
-									//_block_position_row += y - j;
-									//_block_position_col += i - j;
+									//_block_position_row -= _block_centre_row;
+									//_block_position_col += _block_centre_col;
+									//_block_centre_row = y;
+									//_block_centre_col = j;
 									//need to change centre coordinates
 								}
 								break;
